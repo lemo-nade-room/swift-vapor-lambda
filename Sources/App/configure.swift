@@ -1,6 +1,5 @@
 import Fluent
 import FluentPostgresDriver
-import Leaf
 import NIOSSL
 import Vapor
 
@@ -20,10 +19,6 @@ public func configure(_ app: Application) async throws {
                 database: Environment.get("DATABASE_NAME") ?? "vapor_database",
                 tls: .prefer(try .init(configuration: .clientDefault)))
         ), as: .psql)
-
-    app.migrations.add(CreateTodo())
-
-    app.views.use(.leaf)
 
     // register routes
     try routes(app)
