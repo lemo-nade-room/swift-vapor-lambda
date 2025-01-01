@@ -4,7 +4,6 @@ import VaporTesting
 
 @testable import App
 
-@Suite("App Tests with DB", .serialized)
 struct AppTests {
     private func withApp(_ test: (Application) async throws -> Void) async throws {
         let app = try await Application.make(.testing)
@@ -21,15 +20,37 @@ struct AppTests {
         try await app.asyncShutdown()
     }
 
-    @Test("Test Hello World Route")
-    func helloWorld() async throws {
+    @Test func index() async throws {
         try await withApp { app in
-            try await app.testing().test(
-                .GET, "hello",
-                afterResponse: { res async in
-                    #expect(res.status == .ok)
-                    #expect(res.body.string == "Hello, world!")
-                })
+            let testing = try app.testing()
+            
+            let response = try await testing.sendRequest(.GET, "")
+            
+            #expect(response.status == .ok)
+            #expect(response.body.string == "Swift on Server!")
+        }
+    }
+    
+    @Test func helloWorld() async throws {
+        try await withApp { app in
+            let testing = try app.testing()
+            
+            let response = try await testing.sendRequest(.GET, "hello")
+            
+            #expect(response.status == .ok)
+            #expect(response.body.string == "Hello, world!")
+        }
+    }
+    
+    @Test func env() async throws {
+        setenv("TEXT", "こんにちは", 1)
+        try await withApp { app in
+            let testing = try app.testing()
+            
+            let response = try await testing.sendRequest(.GET, "environment")
+            
+            #expect(response.status == .ok)
+            #expect(response.body.string == "こんにちは")
         }
     }
 }
